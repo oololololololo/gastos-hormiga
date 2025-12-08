@@ -59,43 +59,20 @@ export async function joinGroup(code: string) {
 }
 
 // Get full group details with members
+// Get full group details with members using secure RPC
 export async function getUserGroup() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) return null
+    // Use the secure function we just created
+    const { data, error } = await supabase
+        .rpc('get_my_group_details')
 
-    // 1. Get the group ID and user's role
-    const { data: memberData } = await supabase
-        .from('group_members')
-        .select('group_id, role, groups(id, name, code, currency)')
-        .eq('user_id', user.id)
-        .single()
-
-    if (!memberData || !memberData.groups) return null
-
-    const group = memberData.groups as any; // Cast to bypass strict type check for now
-    const myRole = memberData.role;
-
-    // 2. Get all members with their profiles (names)
-    const { data: members } = await supabase
-        .from('group_members')
-        .select('role, user_id, profiles(username, email)')
-        .eq('group_id', group.id)
-
-    // Format members nicely
-    const formattedMembers = members?.map((m: any) => ({
-        userId: m.user_id,
-        role: m.role,
-        name: m.profiles?.username || 'Usuario',
-        email: m.profiles?.email
-    })) || [];
-
-    return {
-        ...group,
-        myRole,
-        members: formattedMembers
+    if (error || !data) {
+        if (error) console.error('Error fetching group:', error)
+        return null
     }
+
+    return data
 }
 
 export async function updateGroupCurrency(groupId: string, currency: string) {

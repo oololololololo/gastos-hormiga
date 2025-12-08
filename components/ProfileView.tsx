@@ -1,16 +1,6 @@
-'use client';
-
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { X, LogOut, TrendingUp, Calendar, CreditCard, Users, Plus, Link as LinkIcon, AlertCircle, Copy, CheckCircle2, Crown } from 'lucide-react';
-import { useExpenseStore } from '@/lib/store';
-import { useEffect, useState } from 'react';
-import { createGroup, getUserGroup, joinGroup, updateGroupCurrency } from '@/app/groups/actions';
-
-interface ProfileViewProps {
-    onClose: () => void;
-    userEmail?: string;
-    userName?: string;
+onClose: () => void;
+userEmail ?: string;
+userName ?: string;
 }
 
 const AVAILABLE_CURRENCIES = [
@@ -334,32 +324,50 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
 
                 {/* Metrics Grid */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-white rounded-2xl shadow-sm space-y-2">
+                    <Link href="/dashboard" onClick={onClose} className="p-4 bg-white rounded-2xl shadow-sm space-y-2 hover:shadow-md transition-shadow cursor-pointer block">
                         <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
                             <Calendar className="w-4 h-4" />
                         </div>
                         <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Este Mes</p>
                         <p className="text-2xl font-light tracking-tight">{currencySymbol}{metrics.thisMonthSpent.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
-                    </div>
+                    </Link>
 
-                    <div className="p-4 bg-white rounded-2xl shadow-sm space-y-2">
+                    <Link href="/dashboard" onClick={onClose} className="p-4 bg-white rounded-2xl shadow-sm space-y-2 hover:shadow-md transition-shadow cursor-pointer block">
                         <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
                             <CreditCard className="w-4 h-4" />
                         </div>
                         <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total</p>
                         <p className="text-2xl font-light tracking-tight">{currencySymbol}{metrics.totalSpent.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
-                    </div>
+                    </Link>
 
-                    <div className="col-span-2 p-4 bg-white rounded-2xl shadow-sm flex items-center justify-between">
+                    <Link href="/dashboard" onClick={onClose} className="col-span-2 p-4 bg-white rounded-2xl shadow-sm flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer group">
                         <div className="space-y-1">
                             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Promedio Diario</p>
                             <p className="text-2xl font-light tracking-tight">{currencySymbol}{metrics.averageDaily.toFixed(2)}</p>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                        <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 group-hover:bg-purple-200 transition-colors">
                             <TrendingUp className="w-5 h-5" />
                         </div>
-                    </div>
+                    </Link>
                 </div>
+
+                {/* Dashboard Button */}
+                <Link
+                    href="/dashboard"
+                    onClick={onClose}
+                    className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center shadow-sm">
+                            <TrendingUp className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-gray-900">Analíticas Personales</p>
+                            <p className="text-xs text-blue-600/80">Ver gráficos detallados</p>
+                        </div>
+                    </div>
+                    <ArrowUpRight className="w-5 h-5 text-blue-400 group-hover:text-blue-600 transition-colors" />
+                </Link>
 
                 {/* Stats Summary */}
                 <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">

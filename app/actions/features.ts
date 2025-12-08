@@ -15,6 +15,16 @@ export async function getGroupAnalytics() {
     return data
 }
 
+export async function getPersonalAnalytics() {
+    const supabase = await createClient()
+    const { data, error } = await supabase.rpc('get_personal_analytics')
+    if (error) {
+        console.error(error)
+        return null
+    }
+    return data
+}
+
 // --- MEMBER MANAGEMENT ---
 
 export async function kickMember(targetUserId: string, groupId: string) {

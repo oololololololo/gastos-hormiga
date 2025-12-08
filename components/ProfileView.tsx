@@ -186,9 +186,12 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex-1">
                                             <Link href="/group" onClick={onClose} className="group hover:opacity-80 transition-opacity">
-                                                <h4 className="text-2xl font-light tracking-tight text-gray-900 flex items-center gap-2">
+                                                <h4 className="text-2xl font-light tracking-tight text-gray-900 flex items-center gap-3">
                                                     {group.name}
-                                                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 text-sm">Ver panel →</span>
+                                                    <span className="text-lg font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                                                        {group.currency}{group.total_spent?.toLocaleString() || 0}
+                                                    </span>
+                                                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 text-sm ml-auto">Ver panel →</span>
                                                 </h4>
                                                 <p className="text-xs text-gray-500 mt-1">
                                                     {group.members?.length} {group.members?.length === 1 ? 'miembro' : 'miembros'}

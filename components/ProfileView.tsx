@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { X, LogOut, TrendingUp, Calendar, CreditCard, Users, Plus, Link as LinkIcon, AlertCircle, Copy, CheckCircle2, Crown } from 'lucide-react';
 import { useExpenseStore } from '@/lib/store';
 import { useEffect, useState } from 'react';
@@ -183,11 +184,16 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
 
                                 <div className="relative z-10">
                                     <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <h4 className="text-2xl font-light tracking-tight text-gray-900">{group.name}</h4>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                {group.members?.length} {group.members?.length === 1 ? 'miembro' : 'miembros'}
-                                            </p>
+                                        <div className="flex-1">
+                                            <Link href="/group" onClick={onClose} className="group hover:opacity-80 transition-opacity">
+                                                <h4 className="text-2xl font-light tracking-tight text-gray-900 flex items-center gap-2">
+                                                    {group.name}
+                                                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500 text-sm">Ver panel →</span>
+                                                </h4>
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    {group.members?.length} {group.members?.length === 1 ? 'miembro' : 'miembros'}
+                                                </p>
+                                            </Link>
                                         </div>
                                         {group.myRole === 'admin' && (
                                             <div className="flex items-center gap-2">
@@ -357,14 +363,34 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
 
                 {/* Stats Summary */}
                 <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-                    <h3 className="text-sm font-semibold text-gray-900">Resumen</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">Resumen y Preferencias</h3>
+
                     <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                         <span className="text-sm text-gray-500">Transacciones Totales</span>
                         <span className="font-medium">{metrics.count}</span>
                     </div>
+
                     <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                        <span className="text-sm text-gray-500">Moneda</span>
-                        <span className="font-medium">{group?.currency === '$' ? 'USD ($)' : AVAILABLE_CURRENCIES.find(c => c.code === group?.currency)?.label || group?.currency}</span>
+                        <span className="text-sm text-gray-500">Moneda del Grupo</span>
+                        <span className="font-medium">{group?.currency === '$' ? 'USD ($)' : AVAILABLE_CURRENCIES.find(c => c.code === group?.currency)?.label || group?.currency || 'No asignada'}</span>
+                    </div>
+
+                    {/* User Personal Preference (Separate from group) */}
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                        <span className="text-sm text-gray-500">Tu Moneda (Personal)</span>
+                        <select
+                            className="text-sm font-medium bg-transparent outline-none text-right cursor-pointer text-blue-600 hover:text-blue-800"
+                            defaultValue="$" // Ideally verify from profile
+                            onChange={async (e) => {
+                                const { updateUserCurrency } = await import('@/app/actions/features');
+                                await updateUserCurrency(e.target.value);
+                                window.location.reload();
+                            }}
+                        >
+                            {AVAILABLE_CURRENCIES.map(c => (
+                                <option key={c.code} value={c.code}>{c.label}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 

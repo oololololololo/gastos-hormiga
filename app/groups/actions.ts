@@ -21,7 +21,13 @@ export async function createGroup(groupName: string) {
 
     if (error) {
         console.error('Group creation error:', error)
-        return { error: error.message }
+        try {
+            // Fallback if RPC fails or not exists (though we created it)
+            // This is just a safety for existing code logic, but rpc should work.
+            return { error: error.message }
+        } catch (e) {
+            return { error: 'Unknown error creating group' }
+        }
     }
 
     // RPC returns JSON, so we handle it as the group object
@@ -52,20 +58,71 @@ export async function joinGroup(code: string) {
     return { success: true }
 }
 
+// Get full group details with members
 export async function getUserGroup() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) return null
 
-    const { data } = await supabase
+    // 1. Get the group ID and user's role
+    const { data: memberData } = await supabase
         .from('group_members')
-        .select('group_id, groups(name, code)')
+        .select('group_id, role, groups(id, name, code, currency)')
         .eq('user_id', user.id)
         .single()
 
-    if (!data || !data.groups) return null
+    if (!memberData || !memberData.groups) return null
 
-    // @ts-ignore
-    return { id: data.group_id, ...data.groups }
+    const group = memberData.groups as any; // Cast to bypass strict type check for now
+    const myRole = memberData.role;
+
+    // 2. Get all members with their profiles (names)
+    const { data: members } = await supabase
+        .from('group_members')
+        .select('role, user_id, profiles(username, email)')
+        .eq('group_id', group.id)
+
+    // Format members nicely
+    const formattedMembers = members?.map((m: any) => ({
+        userId: m.user_id,
+        role: m.role,
+        name: m.profiles?.username || 'Usuario',
+        email: m.profiles?.email
+    })) || [];
+
+    return {
+        ...group,
+        myRole,
+        members: formattedMembers
+    }
+}
+
+export async function updateGroupCurrency(groupId: string, currency: string) {
+    const supabase = await createClient()
+
+    // Check if admin
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'No autorizado' }
+
+    const { data: member } = await supabase
+        .from('group_members')
+        .select('role')
+        .eq('group_id', groupId)
+        .eq('user_id', user.id)
+        .single()
+
+    if (member?.role !== 'admin') {
+        return { error: 'Solo el administrador puede cambiar la moneda' }
+    }
+
+    const { error } = await supabase
+        .from('groups')
+        .update({ currency })
+        .eq('id', groupId)
+
+    if (error) return { error: error.message }
+
+    revalidatePath('/')
+    return { success: true }
 }

@@ -1,16 +1,25 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { X, LogOut, TrendingUp, Calendar, CreditCard, Users, Plus, Link as LinkIcon, AlertCircle, Copy, CheckCircle2 } from 'lucide-react';
+import { X, LogOut, TrendingUp, Calendar, CreditCard, Users, Plus, Link as LinkIcon, AlertCircle, Copy, CheckCircle2, Crown } from 'lucide-react';
 import { useExpenseStore } from '@/lib/store';
 import { useEffect, useState } from 'react';
-import { createGroup, getUserGroup, joinGroup } from '@/app/groups/actions';
+import { createGroup, getUserGroup, joinGroup, updateGroupCurrency } from '@/app/groups/actions';
 
 interface ProfileViewProps {
     onClose: () => void;
     userEmail?: string;
     userName?: string;
 }
+
+const AVAILABLE_CURRENCIES = [
+    { code: '$', label: 'USD ($)' },
+    { code: '€', label: 'EUR (€)' },
+    { code: '£', label: 'GBP (£)' },
+    { code: 'S/', label: 'PEN (S/)' },
+    { code: 'MX$', label: 'MXN ($)' },
+    { code: 'ARS', label: 'ARS ($)' },
+];
 
 export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) {
     const { expenses } = useExpenseStore();
@@ -30,7 +39,6 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
-        // ... metrics logic ...
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
@@ -74,9 +82,11 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
         if (res.error) {
             setError(res.error);
         } else {
-            setGroup({ name: inputValue, code: res.code });
+            // Optimistic update
+            setGroup({ name: inputValue, code: res.code, currency: '$', myRole: 'admin', members: [] });
             setShowCreateInput(false);
             setInputValue('');
+            window.location.reload();
         }
         setIsLoading(false);
     };
@@ -88,13 +98,18 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
         if (res.error) {
             setError(res.error);
         } else {
-            const userGroup = await getUserGroup();
-            setGroup(userGroup);
-            setShowJoinInput(false);
-            setInputValue('');
-            window.location.reload(); // Refresh to sync expenses
+            window.location.reload();
         }
         setIsLoading(false);
+    };
+
+    const handleCurrencyChange = async (newCurrency: string) => {
+        if (!group) return;
+        const res = await updateGroupCurrency(group.id, newCurrency);
+        if (res.success) {
+            setGroup({ ...group, currency: newCurrency });
+            window.location.reload();
+        }
     };
 
     const handleLogout = async () => {
@@ -110,13 +125,15 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const currencySymbol = group?.currency || '$';
+
     return (
         <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-50 w-full md:w-[400px] bg-[#F5F5F7] shadow-2xl flex flex-col"
+            className="fixed inset-y-0 right-0 z-50 w-full md:w-[450px] bg-[#F5F5F7] shadow-2xl flex flex-col"
         >
             {/* Header */}
             <div className="flex items-center justify-between p-6 bg-white shadow-sm z-10">
@@ -138,43 +155,96 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
                         {userName ? userName[0].toUpperCase() : (userEmail ? userEmail[0].toUpperCase() : 'U')}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                            {userName || 'Usuario'}
-                        </p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                                {userName || 'Usuario'}
+                            </p>
+                            {group?.myRole === 'admin' && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-800">
+                                    Admin
+                                </span>
+                            )}
+                        </div>
                         <p className="text-xs text-gray-500">{userEmail}</p>
                     </div>
                 </div>
 
                 {/* Groups Section */}
                 <div className="space-y-4">
-                    <h3 className="text-sm font-semibold text-gray-900 px-1">Grupo</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 px-1">Tu Grupo</h3>
 
                     {group ? (
-                        <div className="bg-white rounded-2xl shadow-sm p-5 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-5">
-                                <Users className="w-24 h-24" />
-                            </div>
+                        <div className="space-y-4">
+                            {/* Group Card */}
+                            <div className="bg-white rounded-2xl shadow-sm p-5 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-5">
+                                    <Users className="w-24 h-24" />
+                                </div>
 
-                            <div className="relative z-10">
-                                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Tu Grupo</p>
-                                <h4 className="text-2xl font-light tracking-tight text-gray-900 mb-4">{group.name}</h4>
-
-                                <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between border border-gray-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-gray-500">
-                                            <LinkIcon className="w-4 h-4" />
-                                        </div>
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-start mb-4">
                                         <div>
-                                            <p className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Código de Invitación</p>
-                                            <p className="font-mono text-lg font-medium tracking-wider text-[#1D1D1F]">{group.code}</p>
+                                            <h4 className="text-2xl font-light tracking-tight text-gray-900">{group.name}</h4>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                {group.members?.length} {group.members?.length === 1 ? 'miembro' : 'miembros'}
+                                            </p>
                                         </div>
+                                        {group.myRole === 'admin' && (
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={group.currency}
+                                                    onChange={(e) => handleCurrencyChange(e.target.value)}
+                                                    className="text-xs bg-white/50 border border-gray-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-black/5 cursor-pointer hover:bg-white transition-colors"
+                                                >
+                                                    {AVAILABLE_CURRENCIES.map(c => (
+                                                        <option key={c.code} value={c.code}>{c.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
                                     </div>
-                                    <button
-                                        onClick={copyCode}
-                                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                                    >
-                                        {copied ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
-                                    </button>
+
+                                    <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between border border-gray-100 mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-gray-500">
+                                                <LinkIcon className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Código de Invitación</p>
+                                                <p className="font-mono text-lg font-medium tracking-wider text-[#1D1D1F]">{group.code}</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={copyCode}
+                                            className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                                        >
+                                            {copied ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
+                                        </button>
+                                    </div>
+
+                                    {/* Members List */}
+                                    {group.members && group.members.length > 0 && (
+                                        <div className="space-y-3 mt-4 pt-4 border-t border-gray-100">
+                                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Miembros</p>
+                                            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                                                {group.members.map((member: any) => (
+                                                    <div key={member.userId} className="flex items-center justify-between bg-white/50 p-2 rounded-lg border border-gray-100">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">
+                                                                {member.name ? member.name[0].toUpperCase() : '?'}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-medium text-gray-900">{member.name}</p>
+                                                                <p className="text-[10px] text-gray-500 capitalize">{member.role === 'admin' ? 'Administrador' : 'Miembro'}</p>
+                                                            </div>
+                                                        </div>
+                                                        {member.role === 'admin' && <Crown className="w-4 h-4 text-yellow-500" />}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                 </div>
                             </div>
                         </div>
@@ -263,7 +333,7 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
                             <Calendar className="w-4 h-4" />
                         </div>
                         <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Este Mes</p>
-                        <p className="text-2xl font-light tracking-tight">${metrics.thisMonthSpent.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+                        <p className="text-2xl font-light tracking-tight">{currencySymbol}{metrics.thisMonthSpent.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
                     </div>
 
                     <div className="p-4 bg-white rounded-2xl shadow-sm space-y-2">
@@ -271,13 +341,13 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
                             <CreditCard className="w-4 h-4" />
                         </div>
                         <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total</p>
-                        <p className="text-2xl font-light tracking-tight">${metrics.totalSpent.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+                        <p className="text-2xl font-light tracking-tight">{currencySymbol}{metrics.totalSpent.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
                     </div>
 
                     <div className="col-span-2 p-4 bg-white rounded-2xl shadow-sm flex items-center justify-between">
                         <div className="space-y-1">
                             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Promedio Diario</p>
-                            <p className="text-2xl font-light tracking-tight">${metrics.averageDaily.toFixed(2)}</p>
+                            <p className="text-2xl font-light tracking-tight">{currencySymbol}{metrics.averageDaily.toFixed(2)}</p>
                         </div>
                         <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
                             <TrendingUp className="w-5 h-5" />
@@ -294,7 +364,7 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                         <span className="text-sm text-gray-500">Moneda</span>
-                        <span className="font-medium">USD</span>
+                        <span className="font-medium">{group?.currency === '$' ? 'USD ($)' : AVAILABLE_CURRENCIES.find(c => c.code === group?.currency)?.label || group?.currency}</span>
                     </div>
                 </div>
 

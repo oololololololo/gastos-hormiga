@@ -63,7 +63,11 @@ export default function Home() {
           // It DOES NOT have `id`. I need to fix the action to return ID or fetch ID here.
         }
 
-        const { data } = await supabase.from('expenses').select('*').order('created_at', { ascending: false });
+        const { data } = await supabase
+          .from('expenses')
+          .select('*')
+          .eq('user_id', user.id) // Force strict privacy filtering
+          .order('created_at', { ascending: false });
         if (data) {
           setExpenses(data.map((e: any) => ({
             id: e.id, // Ensure uuid

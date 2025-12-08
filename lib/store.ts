@@ -11,6 +11,7 @@ export interface Expense {
 interface ExpenseState {
     expenses: Expense[];
     addExpense: (amount: number, category?: string, groupId?: string) => Promise<void>;
+    removeExpense: (id: string) => Promise<void>;
     setExpenses: (expenses: Expense[]) => void;
     getTodayTotal: () => number;
     historyOpen: boolean;
@@ -54,6 +55,23 @@ export const useExpenseStore = create<ExpenseState>()(
                     }
                 } catch (error) {
                     console.error("Failed to sync expense:", error);
+                }
+            },
+
+            removeExpense: async (id) => {
+                // Optimistic update
+                set((state) => ({
+                    expenses: state.expenses.filter((e) => e.id !== id),
+                }));
+
+                // Sync to Supabase
+                try {
+                    const { createClient } = await import('@/lib/supabase/client');
+                    const supabase = createClient();
+                    await supabase.from('expenses').delete().eq('id', id);
+                } catch (error) {
+                    console.error("Failed to delete expense:", error);
+                    // Could revert state here if needed, but for simplicity we keep optimistic
                 }
             },
 

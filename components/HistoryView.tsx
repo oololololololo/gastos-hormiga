@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Trash2 } from "lucide-react";
 import { useExpenseStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +11,7 @@ interface HistoryViewProps {
 }
 
 export function HistoryView({ onClose }: HistoryViewProps) {
-    const { expenses, getTodayTotal } = useExpenseStore();
+    const { expenses, getTodayTotal, removeExpense } = useExpenseStore();
 
     // Filter for today locally or use store getter? Store getter for total, but list we need locally.
     // Ideally store should provide selectors. I'll just filter here for simplicity in prototype.
@@ -88,7 +88,7 @@ export function HistoryView({ onClose }: HistoryViewProps) {
                 ) : (
                     <div className="space-y-6">
                         {todaysExpenses.map((expense) => (
-                            <div key={expense.id} className="flex justify-between items-center text-xl font-light border-b border-muted/20 pb-4 last:border-0">
+                            <div key={expense.id} className="group flex justify-between items-center text-xl font-light border-b border-muted/20 pb-4 last:border-0 pl-2">
                                 <span className="text-muted-foreground">
                                     {new Date(expense.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
@@ -96,6 +96,17 @@ export function HistoryView({ onClose }: HistoryViewProps) {
                                     {/* We could map category to icon here if we wanted */}
                                     {expense.category && <span className="text-sm capitalize text-muted-foreground bg-muted/20 px-2 py-1 rounded-full">{expense.category}</span>}
                                     <span>${expense.amount.toFixed(2)}</span>
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('¿Eliminar este gasto?')) {
+                                                removeExpense(expense.id);
+                                            }
+                                        }}
+                                        className="ml-2 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 active:opacity-100"
+                                        title="Eliminar gasto"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
                         ))}

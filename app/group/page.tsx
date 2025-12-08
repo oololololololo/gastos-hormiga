@@ -220,7 +220,10 @@ export default function GroupDashboard() {
                     <h3 className="text-lg font-medium mb-6">Por Categoría</h3>
                     <div className="space-y-5">
                         {categories.length > 0 ? categories.map((cat: any, i: number) => {
-                            const Icon = ICON_MAP[cat.category] || null;
+                            const categoryName = cat.category || 'Varios';
+                            const lowerCat = categoryName.toLowerCase();
+                            // Buscar el icono usando la clave original o la versión en minúsculas
+                            const Icon = ICON_MAP[cat.category] || ICON_MAP[lowerCat] || null;
                             const percentage = totalSpent > 0 ? (cat.total / totalSpent) * 100 : 0;
 
                             return (
@@ -228,12 +231,12 @@ export default function GroupDashboard() {
                                     <div className="flex justify-between text-sm mb-2">
                                         <div className="flex items-center gap-2">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${['bg-blue-100 text-blue-600', 'bg-orange-100 text-orange-600', 'bg-purple-100 text-purple-600', 'bg-green-100 text-green-600'][i % 4]}`}>
-                                                {Icon ? <Icon className="w-4 h-4" /> : <span className="text-xs font-bold">{cat.category.substring(0, 2).toUpperCase()}</span>}
+                                                {Icon ? <Icon className="w-4 h-4" /> : <span className="text-xs font-bold ring-0">{categoryName.substring(0, 2).toUpperCase()}</span>}
                                             </div>
                                             <span className="font-medium text-gray-700 capitalize">
-                                                {['food', 'transport', 'shopping', 'meal'].includes(cat.category)
-                                                    ? ({ 'food': 'Café', 'transport': 'Transporte', 'shopping': 'Compras', 'meal': 'Comida' }[cat.category as string])
-                                                    : cat.category}
+                                                {['food', 'transport', 'shopping', 'meal'].includes(lowerCat)
+                                                    ? ({ 'food': 'Café', 'transport': 'Transporte', 'shopping': 'Compras', 'meal': 'Comida' }[lowerCat as string])
+                                                    : categoryName}
                                             </span>
                                         </div>
                                         <span className="font-semibold text-gray-900">{group.currency}{cat.total.toLocaleString()}</span>

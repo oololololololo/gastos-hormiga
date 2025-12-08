@@ -10,7 +10,7 @@ export interface Expense {
 
 interface ExpenseState {
     expenses: Expense[];
-    addExpense: (amount: number, category?: string) => Promise<void>;
+    addExpense: (amount: number, category?: string, groupId?: string) => Promise<void>;
     setExpenses: (expenses: Expense[]) => void;
     getTodayTotal: () => number;
     historyOpen: boolean;
@@ -23,7 +23,7 @@ export const useExpenseStore = create<ExpenseState>()(
             expenses: [],
             historyOpen: false,
 
-            addExpense: async (amount, category) => {
+            addExpense: async (amount, category, groupId) => {
                 const newExpense: Expense = {
                     id: crypto.randomUUID(),
                     amount,
@@ -48,6 +48,7 @@ export const useExpenseStore = create<ExpenseState>()(
                             user_id: user.id,
                             amount: newExpense.amount,
                             category: newExpense.category,
+                            group_id: groupId || null,
                             created_at: new Date(newExpense.timestamp).toISOString(),
                         });
                     }

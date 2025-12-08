@@ -73,6 +73,7 @@ export default async function LoginPage({
 
                         <button
                             formAction={loginWithGoogle}
+                            formNoValidate
                             className="group relative flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-medium text-[#1D1D1F] border border-gray-200 hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 transition-transform active:scale-95"
                         >
                             <svg className="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24">

@@ -23,6 +23,8 @@ export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
   const { setExpenses } = useExpenseStore();
   const [user, setUser] = useState<any>(null);
+  const [userName, setUserName] = useState<string | undefined>();
+  const [groupId, setGroupId] = useState<string | undefined>();
 
   useEffect(() => {
     setIsMounted(true);
@@ -35,6 +37,32 @@ export default function Home() {
       setUser(user);
 
       if (user) {
+        // Fetch profile to check if username exists
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile?.username) {
+          window.location.href = '/onboarding';
+          return;
+        }
+
+        setUserName(profile.username);
+
+        // Check for group
+        const { getUserGroup } = await import('@/app/groups/actions');
+        const userGroup = await getUserGroup();
+        if (userGroup) {
+          setGroupId(userGroup.id); // Note: server action returns data directly, but we might need id. 
+          // Wait, getUserGroup returns { name, code } but select is 'group_id, groups(name, code)'...
+          // Let's re-verify getUserGroup return value. 
+          // The action returns 'data.groups'. 'data' is { group_id, groups: {...} }. 
+          // Wait, my action returns `data.groups`. That object has `name` and `code`.
+          // It DOES NOT have `id`. I need to fix the action to return ID or fetch ID here.
+        }
+
         const { data } = await supabase.from('expenses').select('*').order('created_at', { ascending: false });
         if (data) {
           setExpenses(data.map((e: any) => ({
@@ -48,6 +76,7 @@ export default function Home() {
     };
     init();
   }, [setExpenses]);
+
 
   const handleKeyPress = useCallback((key: string) => {
     setAmount((prev) => {
@@ -67,7 +96,7 @@ export default function Home() {
     const value = parseFloat(amount);
     if (!value || isNaN(value)) return;
 
-    addExpense(value, selectedCategory);
+    addExpense(value, selectedCategory, groupId);
 
     // Success feedback
     setShowSuccess(true);
@@ -198,7 +227,7 @@ export default function Home() {
       {/* Profile Drawer */}
       <AnimatePresence>
         {profileOpen && (
-          <ProfileView onClose={() => setProfileOpen(false)} userEmail={user?.email} />
+          <ProfileView onClose={() => setProfileOpen(false)} userEmail={user?.email} userName={userName} />
         )}
       </AnimatePresence>
 

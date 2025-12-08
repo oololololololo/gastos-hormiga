@@ -1,6 +1,16 @@
-onClose: () => void;
-userEmail ?: string;
-userName ?: string;
+'use client';
+
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { X, LogOut, TrendingUp, Calendar, CreditCard, Users, Plus, Link as LinkIcon, AlertCircle, Copy, CheckCircle2, Crown, ArrowRightCircle, ArrowUpRight } from 'lucide-react';
+import { useExpenseStore } from '@/lib/store';
+import { useEffect, useState } from 'react';
+import { createGroup, getUserGroup, joinGroup, updateGroupCurrency } from '@/app/groups/actions';
+
+interface ProfileViewProps {
+    onClose: () => void;
+    userEmail?: string;
+    userName?: string;
 }
 
 const AVAILABLE_CURRENCIES = [

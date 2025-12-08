@@ -153,6 +153,40 @@ export default function PersonalDashboard() {
                         <p className="text-xs text-gray-500 font-medium">Mayor Gasto</p>
                         <p className="text-xl font-semibold mt-1">${Math.max(...points.map((p: any) => p.y), 0).toLocaleString()}</p>
                     </div>
-                </main>
-                );
+
+                    {/* Category Bars */}
+                    <div className="bg-white rounded-3xl p-6 shadow-sm">
+                        <h3 className="text-lg font-medium mb-6">Por Categoría</h3>
+                        <div className="space-y-5">
+                            {categoryData.length > 0 ? categoryData.map((cat: any, i: number) => (
+                                <div key={i}>
+                                    <div className="flex justify-between text-sm mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg">{
+                                                cat.category.length < 3 ? cat.category : '🏷️'
+                                            }</span>
+                                            <span className="font-medium text-gray-700 capitalize">{
+                                                cat.category.length < 3 ? 'Gasto' : cat.category
+                                            }</span>
+                                        </div>
+                                        <span className="font-semibold text-gray-900">${cat.total.toLocaleString()}</span>
+                                    </div>
+                                    <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${(cat.total / totalSpent) * 100}%` }}
+                                            transition={{ duration: 0.8, delay: i * 0.1 }}
+                                            className={`h-full rounded-full ${['bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-orange-500'][i % 4]}`}
+                                        />
+                                    </div>
+                                </div>
+                            )) : (
+                                <p className="text-center text-gray-400 text-sm py-4">Sin gastos registrados por categoría</p>
+                            )}
+                        </div>
+                    </div>
+
+                </div>
+        </main>
+    );
 }

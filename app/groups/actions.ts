@@ -12,24 +12,23 @@ export async function createGroup(groupName: string) {
     // Generate simple code (e.g. 6 chars uppercase)
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    // 1. Create Group
-    const { data: group, error: groupError } = await supabase
-        .from('groups')
-        .insert({ name: groupName, code })
-        .select()
-        .single()
+    // Use RPC to create group and join in one atomic transaction (bypasses RLS issues)
+    const { data: group, error } = await supabase
+        .rpc('create_group_and_join', {
+            name_input: groupName,
+            code_input: code
+        })
 
-    if (groupError) return { error: groupError.message }
+    if (error) {
+        console.error('Group creation error:', error)
+        return { error: error.message }
+    }
 
-    // 2. Add creator as member
-    const { error: memberError } = await supabase
-        .from('group_members')
-        .insert({ group_id: group.id, user_id: user.id })
-
-    if (memberError) return { error: memberError.message }
+    // RPC returns JSON, so we handle it as the group object
+    const newGroup = group as any;
 
     revalidatePath('/')
-    return { success: true, code: group.code }
+    return { success: true, code: newGroup.code }
 }
 
 export async function joinGroup(code: string) {

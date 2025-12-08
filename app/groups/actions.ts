@@ -33,27 +33,19 @@ export async function createGroup(groupName: string) {
 
 export async function joinGroup(code: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) return { error: 'Not authenticated' }
+    const { data: result, error } = await supabase
+        .rpc('join_group_by_code', {
+            code_input: code.toUpperCase()
+        })
 
-    // 1. Find group
-    const { data: group, error: findError } = await supabase
-        .from('groups')
-        .select('id')
-        .eq('code', code.toUpperCase())
-        .single()
+    if (error) {
+        return { error: error.message }
+    }
 
-    if (findError || !group) return { error: 'Group not found' }
-
-    // 2. Add user to group
-    const { error: joinError } = await supabase
-        .from('group_members')
-        .insert({ group_id: group.id, user_id: user.id })
-
-    if (joinError) {
-        if (joinError.code === '23505') return { error: 'Already a member' } // Unique violation
-        return { error: joinError.message }
+    // RPC returns a JSON object with success or error
+    if (result && result.error) {
+        return { error: result.error }
     }
 
     revalidatePath('/')

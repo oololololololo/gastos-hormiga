@@ -7,11 +7,19 @@ import { revalidatePath } from 'next/cache'
 
 export async function getGroupAnalytics() {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'No user logged in' }
+
     const { data, error } = await supabase.rpc('get_group_analytics')
+
     if (error) {
-        console.error(error)
-        return null
+        console.error('RPC Error:', error)
+        return { error: error.message }
     }
+
+    // Si la función devuelve null (no group found), devolvemos un error explicito
+    if (!data) return { error: 'User does not belong to any group' }
+
     return data
 }
 

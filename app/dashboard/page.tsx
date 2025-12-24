@@ -69,7 +69,7 @@ export default function PersonalDashboard() {
     const areaD = `${pathD} V ${height} H 0 Z`;
 
     return (
-        <main className="min-h-screen bg-[#F5F5F7] p-4 md:p-8">
+        <main className="min-h-screen bg-[#F5F5F7] p-4 md:p-8 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="max-w-xl mx-auto space-y-8">
 
                 {/* Header */}

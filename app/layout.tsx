@@ -11,6 +11,15 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Gastos Hormiga",
   description: "Zen Micro-expense Tracker",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Gastos",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {

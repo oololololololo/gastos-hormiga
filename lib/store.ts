@@ -11,6 +11,7 @@ export interface Expense {
 interface ExpenseState {
     expenses: Expense[];
     addExpense: (amount: number, category?: string, groupId?: string) => Promise<void>;
+    updateExpense: (id: string, updates: Partial<Expense>) => Promise<void>;
     removeExpense: (id: string) => Promise<void>;
     setExpenses: (expenses: Expense[]) => void;
     getTodayTotal: () => number;
@@ -55,6 +56,32 @@ export const useExpenseStore = create<ExpenseState>()(
                     }
                 } catch (error) {
                     console.error("Failed to sync expense:", error);
+                }
+            },
+
+            updateExpense: async (id, updates) => {
+                // Optimistic update
+                set((state) => ({
+                    expenses: state.expenses.map((e) =>
+                        e.id === id ? { ...e, ...updates } : e
+                    ),
+                }));
+
+                // Sync to Supabase
+                try {
+                    const { createClient } = await import('@/lib/supabase/client');
+                    const supabase = createClient();
+
+                    // We only send the fields that are actually being updated
+                    const dbUpdates: any = {};
+                    if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
+                    if (updates.category !== undefined) dbUpdates.category = updates.category;
+
+                    if (Object.keys(dbUpdates).length > 0) {
+                        await supabase.from('expenses').update(dbUpdates).eq('id', id);
+                    }
+                } catch (error) {
+                    console.error("Failed to update expense:", error);
                 }
             },
 

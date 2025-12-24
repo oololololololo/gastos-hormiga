@@ -128,27 +128,40 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
 
     const currencySymbol = group?.currency || '$';
 
+    const handleDragEnd = (event: any, info: any) => {
+        if (info.offset.y > 100) {
+            onClose();
+        }
+    };
+
     return (
         <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 z-50 w-full md:w-[450px] bg-[#F5F5F7] shadow-2xl flex flex-col"
+            drag="y"
+            dragConstraints={{ top: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+            className="fixed inset-0 z-50 bg-[#F5F5F7] shadow-2xl flex flex-col pt-safe pb-safe rounded-t-[2.5rem] mt-10 md:mt-20 md:max-w-md md:mx-auto md:inset-x-0 md:rounded-t-[2.5rem] md:shadow-2xl"
         >
+            {/* Drag Handle */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-300 rounded-full opacity-50" />
+
             {/* Header */}
-            <div className="flex items-center justify-between p-6 bg-white shadow-sm z-10">
+            <div className="flex items-center justify-between p-6 bg-[#F5F5F7] z-10 pt-12">
                 <h2 className="text-xl font-medium tracking-tight">Perfil</h2>
                 <button
                     onClick={onClose}
-                    className="p-2 -mr-2 text-gray-500 hover:text-black transition-colors rounded-full hover:bg-gray-100"
+                    className="p-2 -mr-2 text-gray-500 hover:text-black transition-colors rounded-full hover:bg-gray-200/50"
                 >
                     <X className="w-6 h-6" />
                 </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
 
                 {/* User Card */}
                 <div className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm">
@@ -418,7 +431,7 @@ export function ProfileView({ onClose, userEmail, userName }: ProfileViewProps) 
             </div>
 
             {/* Footer / Logout */}
-            <div className="p-6 bg-white border-t border-gray-100">
+            <div className="p-6 bg-[#F5F5F7] border-t border-gray-200">
                 <button
                     onClick={handleLogout}
                     className="w-full flex items-center justify-center gap-2 p-4 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-medium"

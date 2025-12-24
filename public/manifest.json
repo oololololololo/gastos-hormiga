@@ -1,0 +1,17 @@
+{
+    "name": "Gastos Hormiga",
+    "short_name": "Gastos",
+    "description": "Zen Micro-expense Tracker",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FAFAFA",
+    "theme_color": "#7C9082",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

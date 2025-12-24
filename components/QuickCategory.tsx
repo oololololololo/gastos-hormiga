@@ -102,7 +102,7 @@ export function QuickCategory({ onSelect, selected, className }: QuickCategoryPr
     return (
         <div className={cn("flex flex-col items-center gap-4", className)}>
 
-            <div className="flex flex-wrap justify-center gap-4 px-4 w-full max-w-md">
+            <div className="flex flex-wrap justify-center gap-6 px-4 w-full max-w-md">
                 <AnimatePresence>
                     {categories.map((cat) => {
                         const IconComponent = ICON_MAP[cat.icon] || Coffee; // Fallback
